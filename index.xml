@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>KuduLab</title>
+    <link>https://kudulab.github.io/</link>
+    <description>Recent content on KuduLab</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 15 Apr 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://kudulab.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>First post</title>
+      <link>https://kudulab.github.io/posts/theme-demo/</link>
+      <pubDate>Mon, 15 Apr 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://kudulab.github.io/posts/theme-demo/</guid>
+      <description>No content yet.</description>
+    </item>
+    
+    <item>
+      <title>About Us</title>
+      <link>https://kudulab.github.io/contact/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kudulab.github.io/contact/</guid>
+      <description>We are passionate software engineers deeply rooted in the DevOps movement, committed to taking on responsibilites of development and operations teams. We believe that applying as-code and continuous delivery methodologies is the key to boost efficiency of IT organisations and satisfaction of all stakeholders.
+Through our open source projects and collaborations we strive to make an impact on the cutting edge solutions and practices to make work of IT professionals easier and more fun.</description>
+    </item>
+    
+    <item>
+      <title>Our Projects</title>
+      <link>https://kudulab.github.io/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kudulab.github.io/projects/</guid>
+      <description>Nothing to see here&amp;hellip; Move along!</description>
+    </item>
+    
+  </channel>
+</rss>
