@@ -3,32 +3,32 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://kudulab.github.io/posts/theme-demo/</loc>
+    <loc>https://kudulab.io/posts/theme-demo/</loc>
     <lastmod>2019-04-15T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://kudulab.github.io/</loc>
-    <lastmod>2019-04-15T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://kudulab.github.io/posts/</loc>
+    <loc>https://kudulab.io/</loc>
     <lastmod>2019-04-15T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://kudulab.github.io/contact/</loc>
+    <loc>https://kudulab.io/posts/</loc>
+    <lastmod>2019-04-15T00:00:00+00:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://kudulab.github.io/projects/</loc>
+    <loc>https://kudulab.io/contact/</loc>
   </url>
   
   <url>
-    <loc>https://kudulab.github.io/series/</loc>
+    <loc>https://kudulab.io/projects/</loc>
+  </url>
+  
+  <url>
+    <loc>https://kudulab.io/series/</loc>
     <priority>0</priority>
   </url>
   
