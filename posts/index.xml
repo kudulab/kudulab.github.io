@@ -6,18 +6,20 @@
     <description>Recent content in Posts on KuduLab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 15 Apr 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 24 Apr 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://kudulab.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>First post</title>
-      <link>https://kudulab.io/posts/theme-demo/</link>
-      <pubDate>Mon, 15 Apr 2019 00:00:00 +0000</pubDate>
+      <title>Hugo blog on gh-pages with terraform and AWS Route 53</title>
+      <link>https://kudulab.io/posts/blog-aws-github-pages/</link>
+      <pubDate>Wed, 24 Apr 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://kudulab.io/posts/theme-demo/</guid>
-      <description>No content yet.</description>
+      <guid>https://kudulab.io/posts/blog-aws-github-pages/</guid>
+      <description>This is a self-referential post about deploying a personal blog on github pages. It describes how kudulab.io is deployed, starting from scratch, ending with fully-working website deployed using best practices.
+All of the supporting code is hosted on github, just like all the open source tools used.
+Audience This post will be most useful to someone building a personal website with similar technologies. You may still find some pieces useful if you</description>
     </item>
     
   </channel>
