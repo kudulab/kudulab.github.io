@@ -17,8 +17,8 @@
 <meta property="og:description" content="Walkthrough validating GoCD config-repos locally using new preflight API" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://kudulab.io/posts/gocd-preflight-validation/" />
-<meta property="article:published_time" content="2019-05-02T00:00:00&#43;00:00"/>
-<meta property="article:modified_time" content="2019-05-02T00:00:00&#43;00:00"/>
+<meta property="article:published_time" content="2019-05-03T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2019-05-03T00:00:00&#43;00:00"/>
 
 
     
@@ -101,13 +101,13 @@
           <div class="date">
             <span class="posted-on">
               <i class="fas fa-calendar"></i>
-              <time datetime='2019-05-02T00:00:00Z'>
-                May 2, 2019
+              <time datetime='2019-05-03T00:00:00Z'>
+                May 3, 2019
               </time>
             </span>
             <span class="reading-time">
               <i class="fas fa-clock"></i>
-              12 minutes read
+              13 minutes read
             </span>
           </div>
           
@@ -118,17 +118,17 @@
       <div>
         
 
-<p>In GoCD <a href="https://www.gocd.org/releases/#19-2-0">19.2.0</a> <a href="https://api.gocd.org/current/#preflight-check-of-config-repo-configurations">preflight API endpoint</a> was <a href="https://github.com/gocd/gocd/pull/5579">merged</a>, which allows to validate local GoCD configuration files (e.g. YAML, JSON) before submitting them to source control.</p>
+<p>In GoCD <a href="https://www.gocd.org/releases/#19-2-0">19.2.0</a> <a href="https://api.gocd.org/current/#preflight-check-of-config-repo-configurations">preflight API endpoint</a> was <a href="https://github.com/gocd/gocd/pull/5579">merged</a>, which allows to validate local GoCD configuration files (e.g. <a href="https://github.com/tomzo/gocd-yaml-config-plugin">YAML</a>, <a href="https://github.com/tomzo/gocd-json-config-plugin">JSON</a>) before submitting them to source control.</p>
 
 <p>Every user has been long annoyed by slow feedback, when pushing configuration changes to GoCD only to find out in a moment that something is wrong on the errors and warnings page. This required to ammend last commit or push another one.</p>
 
-<p>With the new API and gocd-cli it is now possible to get the same feedback before pushing changes. It takes less than a second, depending on hosting environment. In this post I would like to encourage config-repo GoCD users to adopt the routine of checking configuration early. Below is a walkthrough the setup and usage.</p>
+<p>With the new API and gocd-cli it is now possible to get the same feedback before pushing changes. It takes less than a second, depending on hosting environment. In this post I would like to encourage config-repo GoCD users to adopt the routine of checking configuration early. Below is a walk through the setup and usage.</p>
 
-<p>The supporting code is hosted on <a href="https://github.com/tomzo/gocd-preflight-demo">github</a>. It may be useful to fork it now.</p>
+<p>The supporting code is hosted on <a href="https://github.com/tomzo/gocd-preflight-demo">github</a>.</p>
 
 <h2 id="setup">Setup</h2>
 
-<p>We need following components:</p>
+<p>We need the following components:</p>
 
 <ul>
 <li>GoCD server &gt;= 19.2.0</li>
@@ -140,7 +140,7 @@
 
 <p>If you have admin access to a GoCD server, it is quite safe to try the preflight API, because the queries are not changing anything on the server.</p>
 
-<p>Otherwise I would recommend to setup a local gocd server. There are several options to do so, my default way to go about it is with docker and official <a href="https://github.com/gocd/docker-gocd-server">gocd-server</a> image. Since, last stable release is <code>19.3.0</code>, the base image will be <code>gocd/gocd-server:v19.3.0</code> with GoCD 19.3.0.</p>
+<p>Otherwise I would recommend to setup a local gocd server. There are several options to do so, my default way to go about it is with docker and official <a href="https://github.com/gocd/docker-gocd-server">gocd-server</a> image. Since last stable release is <code>19.3.0</code>, the base image will be <code>gocd/gocd-server:v19.3.0</code> with GoCD 19.3.0.</p>
 
 <p>We will now:</p>
 
@@ -150,15 +150,17 @@
 </ol>
 
 <p>This process is automated in the <a href="https://github.com/tomzo/gocd-preflight-demo">supporting repository</a>.
-It&rsquo;s sufficent to run</p>
+It&rsquo;s sufficient to run</p>
 <div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">./tasks setup_gocd</pre></div>
+<p>The command will enter a container with <code>gocd</code> CLI installed and configured against the newly created GoCD server.</p>
+
 <h4 id="manual-setup">Manual setup</h4>
 
-<p>If for some reasons you need to setup GoCD manually, you can do so with following steps.</p>
+<p>If for some reasons you need to setup GoCD manually, you can do so with the following steps.</p>
 
 <p>Generate a <code>passwd</code> file, user is <code>admin</code> and password is <code>secret</code></p>
 <div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">echo -n secret | htpasswd -i -B -c passwd admin</pre></div>
-<p>Start GoCD with docker, using following command:</p>
+<p>Start GoCD with docker, using the following command:</p>
 <div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">docker run -ti -p 8153:8153 -v $PWD/passwd:/godata/passwd gocd/gocd-server:v19.3.0</pre></div>
 <p>Open <code>http://localhost:8153</code> in your browser. You may need to wait for server to start before UI is ready.
 Configure authentication with a password file, by browsing into <code>Admin-&gt;Authorization Configuration</code> and click <code>Add</code>.
@@ -175,12 +177,12 @@ However, as I maintain the GoCD config repository plugins releases anyway, I hav
 
 <h4 id="gocd-cli-configuration">GoCD CLI Configuration</h4>
 
-<p>GoCD CLI has to be configured to know where is the GoCD endpoint and how to authenticate with it.</p>
+<p>GoCD CLI has to be configured to know where the GoCD endpoint is and how to authenticate with it.</p>
 
 <p>If you have started with <code>./tasks setup_gocd</code>, then configuration has been done inside the docker container already.</p>
 
-<p>If you are working with your own server, make notice of the server url, it should end with <code>/go</code>, for example <code>https://go.mydomain.com/go</code>.
-Regardless if you are using the <a href="https://github.com/gocd-contrib/docker-gocd-cli-dojo">gocd-cli-dojo</a> docker image or have downloaded one of the binaries, configuration can be done with a yaml file.
+<p>If you are working with a manually set up server, make notice of the server url, it should end with <code>/go</code>, for example <code>https://go.mydomain.com/go</code>.
+Regardless of whether you are using the <a href="https://github.com/gocd-contrib/docker-gocd-cli-dojo">gocd-cli-dojo</a> docker image or have downloaded one of the binaries, configuration can be done with a yaml file.
 In your home directory create a file <code>.gocd/settings.yaml</code> with the following content:</p>
 <div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">auth:
   password: secret
@@ -198,7 +200,7 @@ But don&rsquo;t add it to the GoCD yet.</p>
 
 <h1 id="trying-out-gocd-cli">Trying out GoCD CLI</h1>
 
-<p>Now, once we are all set up. Let&rsquo;s try working with <code>gocd-cli</code>.</p>
+<p>Now, once we are all set up, let&rsquo;s try working with <code>gocd-cli</code>.</p>
 
 <p>Running <code>gocd</code> prints usage information:</p>
 <div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-console" data-lang="console">dojo@7f0b90d0ae1e(gocd-cli-dojo:):/dojo/work$ gocd
@@ -286,7 +288,7 @@ pipelines:
 <p>It is not yet registered with the server. In this case, let&rsquo;s see if the proposed file is correct</p>
 <div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ gocd configrepo preflight --yaml pipeline.gocd.yaml
 OK</pre></div>
-<p>Running the same command with <code>--verbose</code> is also interesting, we can see what has actually happened:</p>
+<p>Running the same command with <code>--debug</code> is also interesting, we can see what has actually happened:</p>
 <div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-console" data-lang="console">dojo@b934e5d49d46(gocd-cli-dojo:):/dojo/work$ gocd configrepo preflight --yaml pipeline.gocd.yaml --debug
 [DEBUG] Running any necessary config migrations...
 [DEBUG] Loaded config from: /home/dojo/.gocd/settings.yaml
@@ -460,7 +462,7 @@ OK</pre></div>
 <ul>
 <li>a GoCD agent capable of rendering configuration templates, using a template engine of our choice.</li>
 <li>the GoCD agent being able to push to git repository</li>
-<li>the GoCD agent having sufficent secrets to access the GOCD API</li>
+<li>the GoCD agent having sufficient secrets to access the GOCD API</li>
 <li>an additional pipeline responsible for delivery of valid configuration</li>
 </ul>
 
@@ -565,7 +567,7 @@ pipelines:
 <p>In this post we have seen how <code>gocd-cli</code> can be applied to validate configuration early.
 It is a big move forward towards improving <strong>feedback time</strong> on configuration errors. The addition of token-based authentication is also helpful in implementing secure validation routines.</p>
 
-<p>The <code>gocd-cli</code> is in early development stage, but sufficent to boost productivity already.</p>
+<p>The <code>gocd-cli</code> is in early development stage, but sufficient to boost productivity already.</p>
 
 <p>In the near term it would be nice to add a few usability improvements:</p>
 

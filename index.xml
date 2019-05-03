@@ -6,7 +6,7 @@
     <description>Recent content on KuduLab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 02 May 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 03 May 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://kudulab.io/index.xml" rel="self" type="application/rss+xml" />
     
@@ -14,7 +14,7 @@
     <item>
       <title>GoCD configuration validation with preflight API</title>
       <link>https://kudulab.io/posts/gocd-preflight-validation/</link>
-      <pubDate>Thu, 02 May 2019 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 03 May 2019 00:00:00 +0000</pubDate>
       
       <guid>https://kudulab.io/posts/gocd-preflight-validation/</guid>
       <description>In GoCD 19.2.0 preflight API endpoint was merged, which allows to validate local GoCD configuration files (e.g. YAML, JSON) before submitting them to source control.
