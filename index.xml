@@ -6,10 +6,22 @@
     <description>Recent content on KuduLab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 03 May 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 18 Sep 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://kudulab.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>EC2 instance with Terraform and Ansible</title>
+      <link>https://kudulab.io/posts/3-ec2-ansible-dojo/</link>
+      <pubDate>Wed, 18 Sep 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://kudulab.io/posts/3-ec2-ansible-dojo/</guid>
+      <description>In this post we explain how to deploy an AWS EC2 instance using Terraform and then provision it using Ansible. Those tasks will be performed in multiple Dojo docker images.
+The supporting code may be found on github. All the tools used are open source. The setup was tested on Ubuntu 18.04 LTS.
+Audience You will be interested in this post if you:
+ want to learn how to deploy EC2 instances with Terraform want to make your deployments from Docker, using Dojo want to know how to provision a Virtual Machine using Ansible and SSH  Requirement The requirement here is to:</description>
+    </item>
     
     <item>
       <title>GoCD configuration validation with preflight API</title>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+    <meta name="description" content="KuduLab - personal blog and open source projects">
+    <meta name="keywords" content="blog,developer,continuous delivery,infrastructure,devops,IT,open source,gocd">
+
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="EC2 instance with Terraform and Ansible"/>
+<meta name="twitter:description" content="Walkthrough on how to deploy and provision an AWS EC2 instance using Terraform, Ansible, Dojo and Docker"/>
+
+    <meta property="og:title" content="EC2 instance with Terraform and Ansible" />
+<meta property="og:description" content="Walkthrough on how to deploy and provision an AWS EC2 instance using Terraform, Ansible, Dojo and Docker" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kudulab.io/posts/3-ec2-ansible-dojo/" />
+<meta property="article:published_time" content="2019-09-18T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2019-09-18T00:00:00&#43;00:00"/>
+
+
+    
+      <base href="https://kudulab.io/posts/3-ec2-ansible-dojo/">
+    
+    <title>
+  EC2 instance with Terraform and Ansible · KuduLab
+</title>
+
+    
+      <link rel="canonical" href="https://kudulab.io/posts/3-ec2-ansible-dojo/">
+    
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" integrity="sha256-oSrCnRYXvHG31SBifqP2PM1uje7SJUyX0nTwO2RJV54=" crossorigin="anonymous" />
+
+    
+      
+      
+      <link rel="stylesheet" href="https://kudulab.io/css/coder.min.923b7a6f40696147de65ea4d2538660532f6c56de9cbbc51717213115bcaf18e.css" integrity="sha256-kjt6b0BpYUfeZepNJThmBTL2xW3py7xRcXITEVvK8Y4=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://kudulab.io/images/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://kudulab.io/images/favicon-16x16.png" sizes="16x16">
+
+    <meta name="generator" content="Hugo 0.55.1" />
+  </head>
+
+  <body class=" ">
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <img class="logo-img" src="https://kudulab.io/images/kudu-48x48.png" alt="Kudu Logo" />
+    <a class="navigation-title" href="https://kudulab.io/">
+      KuduLab
+    </a>
+    <input type="checkbox" id="menu-toggle" />
+    <label class="menu-button float-right" for="menu-toggle"><i class="fas fa-bars"></i></label>
+    <ul class="navigation-list">
+      
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://kudulab.io/">Home</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://kudulab.io/projects/">Projects</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://kudulab.io/contact/">About</a>
+          </li>
+        
+      
+      
+    </ul>
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">EC2 instance with Terraform and Ansible</h1>
+        </div>
+        <div class="post-meta">
+          <span class="posted-on">
+            <h4 class="post-author">by Ewa Czechowska</h4>
+          </span>
+          <div class="date">
+            <span class="posted-on">
+              <i class="fas fa-calendar"></i>
+              <time datetime='2019-09-18T00:00:00Z'>
+                September 18, 2019
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fas fa-clock"></i>
+              7 minutes read
+            </span>
+          </div>
+          
+          
+        </div>
+      </header>
+
+      <div>
+        
+
+<p>In this post we explain how to deploy an AWS EC2 instance using Terraform and then provision it using Ansible. Those tasks will be performed in multiple <a href="https://github.com/kudulab/dojo">Dojo</a> docker images.</p>
+
+<p>The supporting code may be found on <a href="https://github.com/xmik/edu-aws-ansible">github</a>. All the tools used are open source. The setup was tested on Ubuntu 18.04 LTS.</p>
+
+<h3 id="audience">Audience</h3>
+
+<p>You will be interested in this post if you:</p>
+
+<ul>
+<li>want to learn how to deploy <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html">EC2 instances</a> with <a href="https://www.terraform.io/">Terraform</a></li>
+<li>want to make your deployments from Docker, using <a href="https://github.com/kudulab/dojo">Dojo</a></li>
+<li>want to know how to provision a Virtual Machine using <a href="https://www.ansible.com/">Ansible</a> and SSH</li>
+</ul>
+
+<h3 id="requirement">Requirement</h3>
+
+<p>The requirement here is to:</p>
+
+<ul>
+<li><strong>deploy an EC2 instance and provision it</strong></li>
+<li>keep all the code in source control, applying <strong>infrastructure-as-code</strong></li>
+<li><strong>automate</strong> the deployment, so using GUI is not allowed</li>
+<li>be able to <strong>perform the setup from different machines</strong> while still using the same tools and their versions (e.g. on your laptop and on a CI server)</li>
+<li><strong>keep the costs low</strong></li>
+</ul>
+
+<h3 id="choice-of-tools">Choice of Tools</h3>
+
+<h4 id="terraform">Terraform</h4>
+
+<p>Terraform is a great tool if you want to automate your infrastructure and incorporate the Infrastructure-as-code process. It helps to deploy and destroy resources in a repetitive and reproducible way. It is also great if you are learning a new cloud (like AWS), because you can perform a lot of experiments, keep them in code and after some time: get back to them to in order to remind yourself the scenarios.</p>
+
+<p>Besides, Terraform is a very popular tool, has numerous providers and the Internet is full of use cases and examples of how to work with it.</p>
+
+<h4 id="ansible">Ansible</h4>
+
+<p>It is a Configuration Management tool, achieving similar aims as Chef, Puppet or SaltStack. It is very easy to configure, minimal in nature and just nice to work with. <a href="https://en.wikipedia.org/wiki/Ansible_(software)">The Ansible&rsquo;s design goals</a> are very important too, as we want to provision machines in a reliable, idempotent and secure way. Another essential advantages of Ansible are:</p>
+
+<ul>
+<li>the possibility of ad-hoc tasks execution and</li>
+<li>that the machine you want to provision is only required to have SSH server and python installed. (Sometimes SSH server is not even needed, e.g. when connecting to a docker container).</li>
+</ul>
+
+<h4 id="dojo">Dojo</h4>
+
+<p>Dojo is also open source (like all the tools used here) and it is written by us - KuduLab developers. It aims to provide a reproducible development environment including all the needed tools on any Linux/Mac machine. Thanks to that, you can version your development environment (by using a particular version of a particular Dojo Docker image) and you can ensure that the same environment is used on your development machine and on a CI server. Dojo was written <strong>to minimize the problem of &lsquo;Works on my machine&rsquo; situation</strong>. Some real-life use-cases are:</p>
+
+<ul>
+<li>if you are a Software Developer and are working on a program e.g. written in Java and you want to try if your program works on a newer Gradle, all you need is to use a newer Dojo Docker image. E.g. if you need Gradle 4.10 - use <code>kudulab/openjdk-dojo:0.4.0</code>, but if you need Gradle 5.4.1 - use <code>kudulab/openjdk-dojo:1.1.0</code>.</li>
+<li>if you are doing some experiments, e.g. learning AWS and Terraform, you can use <code>kudulab/terraform-dojo:1.2.1</code>. Then, after 6 months, you can come back to these experiments and still use the same development environment, with the same Terraform version and its plugins setup.</li>
+</ul>
+
+<h3 id="requisites">Requisites</h3>
+
+<p>In order to perform this setup you need to:</p>
+
+<ul>
+<li>have <a href="https://www.docker.com/">Docker</a> installed</li>
+<li>have <a href="https://github.com/kudulab/dojo">Dojo</a> installed</li>
+<li>configure AWS credentials. This can be done in many ways, e.g. in this file: <code>~/.aws/credentials</code> or by environment variables. Read <a href="https://www.terraform.io/docs/providers/aws/index.html">this</a>.</li>
+<li>git clone <a href="https://github.com/xmik/edu-aws-ansible">this</a> github repository and change your current working directory to it</li>
+</ul>
+
+<h3 id="setup">Setup</h3>
+
+<h4 id="ssh-keypair">SSH keypair</h4>
+
+<p>First, we need to generate a SSH keypair. We can do it locally:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ key_owner=&#34;test&#34;
+$ mkdir -p secrets
+$ ssh-keygen -q -b 2048 -t rsa -N &#39;&#39; -C ${key_owner} -f ./secrets/${key_owner}_id_rsa</pre></div>
+<p>We also need to change the permissions of the private key, so that SSH login is possible:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ chmod 600 secrets/${key_owner}_id_rsa</pre></div>
+<h4 id="deploy-ec2-instance">Deploy EC2 instance</h4>
+
+<p>Next, we can deploy an EC2 instance and also a nondefault VPC. The instance will have access to the Internet, so that we can later provision it. The nondefault VPC is needed in order for us to have more control and understand the VPC concept better.</p>
+
+<p>All the infrastructure deployment is done with a single command:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">./tasks deploy</pre></div>
+<p>You can run this command many times and from the 2nd time on Terraform should return such output:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">No changes. Infrastructure is up-to-date.</pre></div>
+<p>Which means that the infrastructure is not going to be changed.</p>
+
+<hr />
+
+<p>Now, we are going to explain what this command <code>./tasks deploy</code> does. It uses a bash script: <code>tasks</code> from a local directory and invokes command <code>deploy</code> from that script. Here, the deployment is done using <a href="https://github.com/kudulab/docker-terraform-dojo">docker-terraform-dojo</a>. We need a Dojo configuration file, a Dojofile, to use Terraform from a Docker image. We name it <code>Dojofile.terraform</code> and apply such contents:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">DOJO_DOCKER_IMAGE=&#34;kudulab/terraform-dojo:1.2.1&#34;</pre></div>
+<p>and then, we can run <code>./tasks deploy</code> command which in turn runs:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ dojo -c Dojofile.terraform
+# all the commands below will be invoked in a dojo docker container
+$ cd terraform/
+$ terraform init
+$ terraform get
+$ terraform plan -out=tf.plan
+$ terraform apply tf.plan
+$ terraform output ec2_public_ip &gt; ../ip.txt</pre></div>
+<p><strong>Warning:</strong> the EC2 instance type used here is not covered by the AWS free tier, but a smaller type was chosen. If you want to use free tier, change the type to: <code>t2.micro</code>.</p>
+
+<p>The last-invoked Terraform resource logs into the EC2 instance using SSH, so afterwards you should be able to SSH login yourself:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ ssh -i secrets/test_id_rsa ubuntu@$(cat ip.txt)</pre></div>
+<p>Now, we have the EC2 instance and a VPC deployed.</p>
+
+<h4 id="get-more-information-about-the-instance-optional-step">Get more information about the instance (optional step)</h4>
+
+<p>Additionally you can use <a href="https://github.com/kudulab/docker-aws-dojo">docker-aws-dojo</a> to check if the EC2 instance is running. First, create the <code>Dojofile.aws</code> with such contents:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">DOJO_DOCKER_IMAGE=&#34;kudulab/aws-dojo:0.2.1&#34;</pre></div>
+<p>and then, proceed with:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ dojo -c Dojofile.aws
+# all the commands below will be invoked in a dojo docker container
+#
+# using boto3 python library
+$ python ./list-instances.py
+Current region is: eu-west-1
+(&#39;i-03b88bd67b04bacf4&#39;, {u&#39;Code&#39;: 16, u&#39;Name&#39;: &#39;running&#39;})
+#
+# using awscli
+$ aws ec2 describe-instances --filters &#34;Name=tag:Name,Values=ec2-ansible-test&#34;
+{
+    &#34;Reservations&#34;: [
+        {
+            &#34;Instances&#34;: [
+                {
+# ... removed the rest of the output for brevity</pre></div>
+<h4 id="provision-ec2-instance-with-ansible">Provision EC2 instance with Ansible</h4>
+
+<p>In order to provision that EC2 instance, run:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">./tasks provision</pre></div>
+<hr />
+
+<p>That command uses <a href="https://github.com/kudulab/docker-ansible-dojo">docker-ansible-dojo</a>. Such a Dojo configuration file <code>Dojofile.ansible</code> is needed:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">DOJO_DOCKER_IMAGE=&#34;kudulab/ansible-dojo:1.1.0&#34;</pre></div>
+<p>the command <code>./tasks provision</code> runs these commands:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ dojo -c Dojofile.ansible
+# all the commands below will be invoked in a dojo docker container
+$ ansible-playbook -i ansible/hosts.yaml ansible/playbook.yaml -v -e &#34;variable_ip=$(cat ip.txt)&#34;</pre></div>
+<p>The <code>hosts.yaml</code> file needs a variable: <code>variable_ip</code>. That is why we needed to set <code>-e &quot;variable_ip=$(cat ip.txt)&quot;</code> to the <code>ansible-playbook</code> command:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ cat ansible/hosts.yaml
+all:
+  hosts:
+    myserver:
+      ansible_connection: ssh
+      ansible_host: &#34;{{ variable_ip }}&#34;
+      ansible_user: ubuntu
+      ansible_ssh_private_key_file: secrets/test_id_rsa</pre></div>
+<p>The Ansible playbook is supposed to (among other tasks) create a dummy file in the EC2 instance. You can verify that the file was indeed created:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ ssh -i secrets/test_id_rsa ubuntu@$(cat ip.txt) &#34;cat /tmp/hello&#34;
+Warning: Permanently added &#39;&lt;some-aws-public-ip&gt;&#39; (ECDSA) to the list of known hosts.
+hi</pre></div>
+<h4 id="clean-up-destroy-the-aws-resources">Clean up (destroy the AWS resources)</h4>
+
+<p>When you decide that you are done with this setup and want to destroy all the AWS resources, run this command:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">./tasks destroy</pre></div>
+<p>This command can also be run many times and nothing should be done from the 2nd time on, because all the Terraform resources should be destroyed already.</p>
+
+<hr />
+
+<p>This command also uses <code>Dojofile.terraform</code> and it runs the following commands:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ dojo -c Dojofile.terraform
+# all the commands below will be invoked in a dojo docker container
+$ cd terraform/
+$ terraform plan -destroy -out=tf.plan
+$ terraform apply tf.plan</pre></div>
+<h3 id="summary">Summary</h3>
+
+<p>The requirement is met by the setup. Thanks to Dojo we don&rsquo;t have to provision our laptops with development tools needed to perform this setup. Dojo Docker images bring us the tools. Each step of the setup is run in a different Dojo Docker container. Terraform solves the problem of keeping Infrastructure as Code and Ansible is a very easy to set up Configuration Management tool.</p>
+
+<p>The chosen solution seems easy enough to be later used in some production case and then tailored to a more demanding set of requirements.</p>
+
+      </div>
+
+      <footer>
+        
+
+
+        <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "ait-lab" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      </footer>
+    </article>
+
+    <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML-full">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$','$']],
+        displayMath: [['$$','$$']],
+        processEscapes: true,
+        processEnvironments: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        TeX: { extensions: ["AMSmath.js", "AMSsymbols.js"] }
+      }
+    });
+    MathJax.Hub.Queue(function() {
+      
+      
+      
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i = 0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  </section>
+
+      </div>
+
+      <footer class="footer">
+  <section class="container">
+    
+     © 2019
+    
+    
+  </section>
+</footer>
+
+    </main>
+
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-138356014-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+  </body>
+
+</html>
