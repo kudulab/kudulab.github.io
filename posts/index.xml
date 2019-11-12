@@ -6,10 +6,19 @@
     <description>Recent content in Posts on KuduLab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 18 Sep 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 06 Oct 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://kudulab.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Getting AWS SysOps Administrator certified</title>
+      <link>https://kudulab.io/posts/aws-sysops-exam/</link>
+      <pubDate>Sun, 06 Oct 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://kudulab.io/posts/aws-sysops-exam/</guid>
+      <description>In July 2019, I&amp;rsquo;ve passed the AWS Certified SysOps Administrator - Associate. I decided to share my experiences leading to it, because while there is a lot of resources for learning AWS, choosing the time-efficient ones requires some extra effort. While I am not an expert in AWS (with just one certificate), my learning path was quite smooth. I learned a lot in a short time, then passed the exam with a high score of 973/1000, which is what many people could aim for.</description>
+    </item>
     
     <item>
       <title>EC2 instance with Terraform and Ansible</title>
