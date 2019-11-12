@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+    <meta name="description" content="KuduLab - personal blog and open source projects">
+    <meta name="keywords" content="blog,developer,continuous delivery,infrastructure,devops,IT,open source,gocd">
+
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="GoCD configuration validation with preflight API"/>
+<meta name="twitter:description" content="Walkthrough validating GoCD config-repos locally using new preflight API"/>
+
+    <meta property="og:title" content="GoCD configuration validation with preflight API" />
+<meta property="og:description" content="Walkthrough validating GoCD config-repos locally using new preflight API" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kudulab.io/posts/gocd-preflight-validation/" />
+<meta property="article:published_time" content="2019-05-03T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2019-05-03T00:00:00&#43;00:00"/>
+
+
+    
+      <base href="https://kudulab.io/posts/gocd-preflight-validation/">
+    
+    <title>
+  GoCD configuration validation with preflight API · KuduLab
+</title>
+
+    
+      <link rel="canonical" href="https://kudulab.io/posts/gocd-preflight-validation/">
+    
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" integrity="sha256-oSrCnRYXvHG31SBifqP2PM1uje7SJUyX0nTwO2RJV54=" crossorigin="anonymous" />
+
+    
+      
+      
+      <link rel="stylesheet" href="https://kudulab.io/css/coder.min.923b7a6f40696147de65ea4d2538660532f6c56de9cbbc51717213115bcaf18e.css" integrity="sha256-kjt6b0BpYUfeZepNJThmBTL2xW3py7xRcXITEVvK8Y4=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://kudulab.io/images/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://kudulab.io/images/favicon-16x16.png" sizes="16x16">
+
+    <meta name="generator" content="Hugo 0.55.1" />
+  </head>
+
+  <body class=" ">
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <img class="logo-img" src="https://kudulab.io/images/kudu-48x48.png" alt="Kudu Logo" />
+    <a class="navigation-title" href="https://kudulab.io/">
+      KuduLab
+    </a>
+    <input type="checkbox" id="menu-toggle" />
+    <label class="menu-button float-right" for="menu-toggle"><i class="fas fa-bars"></i></label>
+    <ul class="navigation-list">
+      
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://kudulab.io/">Home</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://kudulab.io/projects/">Projects</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://kudulab.io/contact/">About</a>
+          </li>
+        
+      
+      
+    </ul>
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">GoCD configuration validation with preflight API</h1>
+        </div>
+        <div class="post-meta">
+          <span class="posted-on">
+            <h4 class="post-author">by Tomasz Sętkowski</h4>
+          </span>
+          <div class="date">
+            <span class="posted-on">
+              <i class="fas fa-calendar"></i>
+              <time datetime='2019-05-03T00:00:00Z'>
+                May 3, 2019
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fas fa-clock"></i>
+              13 minutes read
+            </span>
+          </div>
+          
+          
+        </div>
+      </header>
+
+      <div>
+        
+
+<p>In GoCD <a href="https://www.gocd.org/releases/#19-2-0">19.2.0</a> <a href="https://api.gocd.org/current/#preflight-check-of-config-repo-configurations">preflight API endpoint</a> was <a href="https://github.com/gocd/gocd/pull/5579">merged</a>, which allows to validate local GoCD configuration files (e.g. <a href="https://github.com/tomzo/gocd-yaml-config-plugin">YAML</a>, <a href="https://github.com/tomzo/gocd-json-config-plugin">JSON</a>) before submitting them to source control.</p>
+
+<p>Every user has been long annoyed by slow feedback, when pushing configuration changes to GoCD only to find out in a moment that something is wrong on the errors and warnings page. This required to ammend last commit or push another one.</p>
+
+<p>With the new API and gocd-cli it is now possible to get the same feedback before pushing changes. It takes less than a second, depending on hosting environment. In this post I would like to encourage config-repo GoCD users to adopt the routine of checking configuration early. Below is a walk through the setup and usage.</p>
+
+<p>The supporting code is hosted on <a href="https://github.com/tomzo/gocd-preflight-demo">github</a>.</p>
+
+<h2 id="setup">Setup</h2>
+
+<p>We need the following components:</p>
+
+<ul>
+<li>GoCD server &gt;= 19.2.0</li>
+<li><a href="https://github.com/gocd-contrib/gocd-cli">gocd-cli</a></li>
+<li>A git repository which will be our config-repo</li>
+</ul>
+
+<h3 id="gocd-server-setup">GoCD server setup</h3>
+
+<p>If you have admin access to a GoCD server, it is quite safe to try the preflight API, because the queries are not changing anything on the server.</p>
+
+<p>Otherwise I would recommend to setup a local gocd server. There are several options to do so, my default way to go about it is with docker and official <a href="https://github.com/gocd/docker-gocd-server">gocd-server</a> image. Since last stable release is <code>19.3.0</code>, the base image will be <code>gocd/gocd-server:v19.3.0</code> with GoCD 19.3.0.</p>
+
+<p>We will now:</p>
+
+<ol>
+<li>Setup gocd in docker.</li>
+<li>Configure <a href="https://github.com/gocd/gocd-filebased-authentication-plugin">filebased authentication plugin</a>. Because <a href="https://github.com/gocd-contrib/gocd-cli/issues/35">gocd-cli does not support working with insecure servers yet</a>.</li>
+</ol>
+
+<p>This process is automated in the <a href="https://github.com/tomzo/gocd-preflight-demo">supporting repository</a>.
+It&rsquo;s sufficient to run</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">./tasks setup_gocd</pre></div>
+<p>The command will enter a container with <code>gocd</code> CLI installed and configured against the newly created GoCD server.</p>
+
+<h4 id="manual-setup">Manual setup</h4>
+
+<p>If for some reasons you need to setup GoCD manually, you can do so with the following steps.</p>
+
+<p>Generate a <code>passwd</code> file, user is <code>admin</code> and password is <code>secret</code></p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">echo -n secret | htpasswd -i -B -c passwd admin</pre></div>
+<p>Start GoCD with docker, using the following command:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">docker run -ti -p 8153:8153 -v $PWD/passwd:/godata/passwd gocd/gocd-server:v19.3.0</pre></div>
+<p>Open <code>http://localhost:8153</code> in your browser. You may need to wait for server to start before UI is ready.
+Configure authentication with a password file, by browsing into <code>Admin-&gt;Authorization Configuration</code> and click <code>Add</code>.
+Make sure you set password file path to <code>/godata/passwd</code>.</p>
+
+<p><img src="https://kudulab.io/images/gocd_passwd_auth.png" alt="GoCD password file setup" /></p>
+
+<p>Once configured you&rsquo;ll need to reload the page and login.</p>
+
+<h3 id="gettting-gocd-cli">Gettting GoCD CLI</h3>
+
+<p><a href="https://github.com/gocd-contrib/gocd-cli">gocd-cli</a> is in early development stage, it is not released yet. Currently one has to build it.
+However, as I maintain the GoCD config repository plugins releases anyway, I have added a pipeline to build <code>gocd-cli</code> and a <a href="https://github.com/gocd-contrib/docker-gocd-cli-dojo">docker image with it</a>. I have also published binaries on my <a href="https://github.com/tomzo/gocd-cli/releases/tag/0.0.1">fork</a>.</p>
+
+<h4 id="gocd-cli-configuration">GoCD CLI Configuration</h4>
+
+<p>GoCD CLI has to be configured to know where the GoCD endpoint is and how to authenticate with it.</p>
+
+<p>If you have started with <code>./tasks setup_gocd</code>, then configuration has been done inside the docker container already.</p>
+
+<p>If you are working with a manually set up server, make notice of the server url, it should end with <code>/go</code>, for example <code>https://go.mydomain.com/go</code>.
+Regardless of whether you are using the <a href="https://github.com/gocd-contrib/docker-gocd-cli-dojo">gocd-cli-dojo</a> docker image or have downloaded one of the binaries, configuration can be done with a yaml file.
+In your home directory create a file <code>.gocd/settings.yaml</code> with the following content:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">auth:
+  password: secret
+  type: basic
+  user: admin
+config_version: <span style="color:#ff0;font-weight:bold">1</span>
+server:
+  <span style="color:#007f7f"># make sure this url is correct!</span>
+  url: http://localhost:<span style="color:#ff0;font-weight:bold">8153</span>/go</code></pre></div>
+<h3 id="setup-configuration-repository">Setup configuration repository</h3>
+
+<p>In order to try capabilities of <code>gocd-cli</code>, we need a configuration repository.
+You can fork <a href="https://github.com/tomzo/gocd-preflight-demo">gocd-preflight-demo</a> as it has 1 simple pipeline called <code>preflight-demo</code>.
+But don&rsquo;t add it to the GoCD yet.</p>
+
+<h1 id="trying-out-gocd-cli">Trying out GoCD CLI</h1>
+
+<p>Now, once we are all set up, let&rsquo;s try working with <code>gocd-cli</code>.</p>
+
+<p>Running <code>gocd</code> prints usage information:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-console" data-lang="console">dojo@7f0b90d0ae1e(gocd-cli-dojo:):/dojo/work$ gocd
+A command-line companion to a GoCD server
+
+Usage:
+  gocd [command]
+
+Available Commands:
+  about       About GoCD CLI
+  config      GoCD CLI configuration
+  configrepo  GoCD config-repo functions
+  help        Help about any command
+
+Flags:
+  -c, --config string   config file (default is $HOME/.gocd/settings.yaml)
+  -X, --debug           debug output; overrides --quiet
+  -h, --help            help for gocd
+  -q, --quiet           silence output
+      --version         version for gocd
+
+Use &#34;gocd [command] --help&#34; for more information about a command.</code></pre></div>
+<p>The most interesting commands are under <code>gocd configrepo</code>:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-console" data-lang="console">dojo@7f0b90d0ae1e(gocd-cli-dojo:):/dojo/work$ gocd configrepo
+Functions to help development of config-repos in GoCD (pipeline configs as code)
+
+Usage:
+  gocd configrepo [command]
+
+Aliases:
+  configrepo, cr
+
+Available Commands:
+  export      Exports the specified pipeline as a config-repo definition in the indicated config-repo plugin format
+  fetch       Fetches configrepo plugins
+  preflight   Preflights any number of definition files for syntax, structure, and dependencies against a running GoCD server
+  rm          Deletes a config-repo by id
+  show        Displays the settings for an existing config-repo
+  syntax      Checks one or more definition files for syntactical correctness
+
+Flags:
+      --groovy              Alias for &#39;--plugin-id cd.go.contrib.plugins.configrepo.groovy&#39;
+  -h, --help                help for configrepo
+      --json                Alias for &#39;--plugin-id json.config.plugin&#39;
+  -d, --plugin-dir string   The plugin directory to search for plugins
+  -i, --plugin-id string    The config-repo plugin to use (e.g., yaml.config.plugin)
+      --yaml                Alias for &#39;--plugin-id yaml.config.plugin&#39;
+
+Global Flags:
+  -c, --config string   config file (default is $HOME/.gocd/settings.yaml)
+  -X, --debug           debug output; overrides --quiet
+  -q, --quiet           silence output
+
+Use &#34;gocd configrepo [command] --help&#34; for more information about a command.</code></pre></div>
+<p>We are working with a yaml repository, so we need to make sure we have a yaml plugin installed <strong>locally</strong>. To be consistent, we should have the same plugin version which is used by the server.</p>
+
+<p>If you are using the <a href="https://github.com/gocd-contrib/docker-gocd-cli-dojo">gocd-cli-dojo</a> docker image, then image already bundles the plugin. Image tags can help with picking the plugin version. For example, to use the <code>0.10.1</code> yaml plugin, you could create following <a href="https://github.com/ai-traders/dojo#dojofile">Dojofile</a>:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml">DOJO_DOCKER_IMAGE=<span style="color:#0ff;font-weight:bold">&#34;kudulab/gocd-cli-dojo:yaml-0.10.1&#34;</span></code></pre></div>
+<p>Then running <code>dojo</code> will ensure that this image is used to create the docker container.</p>
+
+<p>If you are using a local binary, then <a href="https://github.com/gocd-contrib/gocd-cli#example-fetch-a-config-repo-plugin-matching-a-specific-version-or-a-version-range">specific plugin version can be fetched with</a></p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">gocd configrepo --yaml fetch --match-version &#39;0.10.1&#39;</pre></div>
+<h2 id="validate-a-new-config-repository">Validate a new config repository</h2>
+
+<p>If you have forked <a href="https://github.com/tomzo/gocd-preflight-demo">gocd-preflight-demo</a>, then there is just one pipeline file with the following content:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">---
+format_version: <span style="color:#ff0;font-weight:bold">4</span>
+pipelines:
+  preflight-demo:
+    group: www
+    label_template: <span style="color:#0ff;font-weight:bold">&#34;${git[:8]}&#34;</span>
+    materials:
+      git:
+        type: configrepo
+    stages:
+      - test:
+          jobs:
+            test:
+              tasks:
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - echo hello</code></pre></div>
+<p>It is not yet registered with the server. In this case, let&rsquo;s see if the proposed file is correct</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ gocd configrepo preflight --yaml pipeline.gocd.yaml
+OK</pre></div>
+<p>Running the same command with <code>--debug</code> is also interesting, we can see what has actually happened:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-console" data-lang="console">dojo@b934e5d49d46(gocd-cli-dojo:):/dojo/work$ gocd configrepo preflight --yaml pipeline.gocd.yaml --debug
+[DEBUG] Running any necessary config migrations...
+[DEBUG] Loaded config from: /home/dojo/.gocd/settings.yaml
+[DEBUG] Sending API request POST http://gocd:8153/go/api/admin/config_repo_ops/preflight?pluginId=yaml.config.plugin
+[DEBUG] Headers &gt;&gt;&gt;
+[DEBUG] Content-Type: multipart/form-data; boundary=e66832a9f9a0eeef51e397ff4654d8a8c8b324d278d40232359a7e2c4b1d
+[DEBUG] Accept: application/vnd.go.cd.v1+json
+[DEBUG] Authorization: :: REDACTED ::
+[DEBUG] Body &gt;&gt;&gt;
+[DEBUG] --e66832a9f9a0eeef51e397ff4654d8a8c8b324d278d40232359a7e2c4b1d
+Content-Disposition: form-data; name=&#34;files[]&#34;; filename=&#34;pipeline.gocd.yaml&#34;
+Content-Type: application/octet-stream
+
+
+[DEBUG] format_version: 4
+pipelines:
+  preflight-demo:
+    group: www
+    label_template: &#34;${git[:8]}&#34;
+    materials:
+      git:
+        type: configrepo
+    stages:
+      - test:
+          jobs:
+            test:
+              tasks:
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - echo hello
+
+[DEBUG]
+--e66832a9f9a0eeef51e397ff4654d8a8c8b324d278d40232359a7e2c4b1d--
+
+[DEBUG] handling success response 200
+[DEBUG] Response status code: 200
+[DEBUG] Response Headers &gt;&gt;&gt;
+[DEBUG] X-Xss-Protection: 1; mode=block
+[DEBUG] X-Content-Type-Options: nosniff
+[DEBUG] Expires: Thu, 01 Jan 1970 00:00:00 GMT
+[DEBUG] Cache-Control: max-age=0, private, must-revalidate
+[DEBUG] Vary: Accept-Encoding, User-Agent
+[DEBUG] Date: Thu, 02 May 2019 09:53:35 GMT
+[DEBUG] X-Ua-Compatible: chrome=1
+[DEBUG] Set-Cookie: JSESSIONID=node01nqjqb5g8fy853dvbwp82pbp34.node0;Path=/go;Expires=Thu, 16-May-2019 09:53:35 GMT;Max-Age=1209600;HttpOnly
+[DEBUG] Set-Cookie: JSESSIONID=node01osr04qt4iled0jfizjvvnec5.node0;Path=/go;Expires=Thu, 16-May-2019 09:53:35 GMT;Max-Age=1209600;HttpOnly
+[DEBUG] Content-Type: application/vnd.go.cd.v1+json;charset=utf-8
+[DEBUG] X-Frame-Options: SAMEORIGIN
+[DEBUG] Response Body &gt;&gt;&gt;
+{
+  &#34;errors&#34; : [ ],
+  &#34;valid&#34; : true
+}
+OK</code></pre></div>
+<p>The actions that took place:
+1. <code>gocd-cli</code> has sent <code>multipart/form-data</code> with pipeline contents to the gocd server. Using the new preflight endpoint, the <code>POST</code> request was sent to <code>http://gocd:8153/go/api/admin/config_repo_ops/preflight?pluginId=yaml.config.plugin</code>
+1. Server has received the configuration, validated it at a <strong>global</strong> scope and responsed with no errors:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="font-weight:bold">&#34;errors&#34;</span> : [ ],
+  <span style="font-weight:bold">&#34;valid&#34;</span> : <span style="color:#fff;font-weight:bold">true</span>
+}</code></pre></div>
+<p>On the local demo setup with docker, this operation takes <code>0.07</code> seconds, that&rsquo;s a nice feedback time!</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-console" data-lang="console">dojo@b934e5d49d46(gocd-cli-dojo:):/dojo/work$ time gocd configrepo preflight --yaml pipeline.gocd.yaml
+OK
+
+real	0m0.070s
+user	0m0.004s
+sys	0m0.009s</code></pre></div>
+<p>This is great for the the happy path. Let&rsquo;s break something to see how errors are communicated. We can make everybody&rsquo;s favorite yaml error - let&rsquo;s make extra identiation somewhere.</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">format_version: <span style="color:#ff0;font-weight:bold">4</span>
+pipelines:
+  preflight-demo:
+      group: www
+    label_template: <span style="color:#0ff;font-weight:bold">&#34;${git[:8]}&#34;</span>
+    materials:
+      git:
+        type: configrepo
+    stages:
+      - test:
+          jobs:
+            test:
+              tasks:
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - echo hello</code></pre></div>
+<p>Then validate again:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-console" data-lang="console">$ gocd configrepo preflight --yaml pipeline.gocd.yaml
+pipeline.gocd.yaml:
+  - Error parsing YAML. : Line 4, column 19: Expected a &#39;block end&#39; but found: block mapping start :
+
+$ echo $?
+1</code></pre></div>
+<p>The error message is not the best, but at least it shows the line with the error. The message would be much better after adding <a href="https://github.com/tomzo/gocd-yaml-config-plugin/issues/113">schema validation to the yaml plugin</a>.
+The exit code is <code>1</code> due to the validation error.</p>
+
+<p>This covers basics of validating a new repository. Let&rsquo;s move on to working with config-repos already registered with the server.</p>
+
+<h2 id="validate-existing-repository">Validate existing repository</h2>
+
+<p>Let&rsquo;s add the configuration repository to GoCD server.
+In order to add your fork to the server, browse to <code>Admin -&gt; Config Repositories</code> and click on <code>Add</code>, then fill in the following pop-up</p>
+
+<p><img src="https://kudulab.io/images/gocd_add_preflight_repo.png" alt="Adding config repo" /></p>
+
+<ol>
+<li>Make sure you select <code>YAML Configuration Plugin</code>.</li>
+<li>Then enter URL of the repository. A github fork URL would have following format <code>https://github.com/&lt;your-github-account&gt;/gocd-preflight-demo.git</code>.</li>
+<li>Enter the <code>Config repository ID</code> and remember this. We will need it soon. In this walkthrough, we&rsquo;ll use <code>preflight-demo</code> as repository ID.</li>
+<li>Click <code>Save</code> and wait a moment for the pipeline to appear on the dashboard.</li>
+</ol>
+
+<p><img src="https://kudulab.io/images/gocd_preflight_demo_pipe.png" alt="Pipeline on dashboard" /></p>
+
+<p>Now, let&rsquo;s see what happens when we try to validate our local <code>pipeline.gocd.yaml</code> again.</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">dojo@b934e5d49d46(gocd-cli-dojo:):/dojo/work$ gocd configrepo preflight --yaml pipeline.gocd.yaml
+You have defined multiple pipelines called &#39;preflight-demo&#39;. Pipeline names are case-insensitive and must be unique.
+
+You have defined multiple pipelines named &#39;preflight-demo&#39;. Pipeline names must be unique. Source(s): [cruise-config.xml, https://github.com/tomzo/gocd-preflight-demo.git at c1e3abd571d2d050e8767f277551016ab7164e9e]</pre></div>
+<p>We get a duplicate pipeline name error. This is because we did not tell GoCD that we are attempting to validate, what would happen, if we replaced <code>preflight-demo</code> repository with our local content. In order to fix this, let&rsquo;s add <code>-r</code> argument with config repo ID:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ gocd configrepo preflight --yaml -r preflight-demo pipeline.gocd.yaml
+OK</pre></div>
+<p>Now the check makes sense.</p>
+
+<h2 id="using-the-auth-tokens">Using the auth tokens</h2>
+
+<p>So far we have been using the username and password authentication method. <code>gocd-cli</code> supports token-based authentication, which is generally a better and more secure approach. You must be running <code>GoCD</code> &gt;= 19.2.0 to use tokens.
+There is a very clear screencast, on the <a href="https://www.gocd.org/releases/#19-2-0">releases page</a>, on how to generate a token.
+Let&rsquo;s put <code>config-repo validation</code> as description:</p>
+
+<p><img src="https://kudulab.io/images/gocd_create_access_token.png" alt="config-repo validation" /></p>
+
+<p>We have previously configured <code>gocd-cli</code> to use a username and a password. In order to switch to tokens, use the following <code>.gocd/settings.yaml</code>:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">auth:
+  <span style="color:#007f7f"># The generated token goes here:</span>
+  token: eb7abf46df710fbde5c2b532857069a5b1cce4ab
+  type: token
+config_version: <span style="color:#ff0;font-weight:bold">1</span>
+server:
+  <span style="color:#007f7f"># make sure this url is correct!</span>
+  url: http://localhost:<span style="color:#ff0;font-weight:bold">8153</span>/go</code></pre></div>
+<p>We can check that this configuration also works:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ gocd configrepo preflight --yaml -r preflight-demo pipeline.gocd.yaml
+OK</pre></div>
+<h2 id="implications">Implications</h2>
+
+<p>Above walkthrough demonstrates how we can validate configuration locally before sending it to the source control, and therefore GoCD. It makes sense that each developer working on pipeline config files, could adopt a routine in which before commiting and pushing the new pipelines, one would first check if validation passes.</p>
+
+<p>The weak spot in this approach is that developers may simply forget to do this check. To protect against this, here is a <a href="https://github.com/gocd/gocd/issues/1133#issuecomment-110326938">wild idea from almost 4 years ago</a> - create a pipeline which validates configuration repository before importing it in the server.</p>
+
+<h3 id="ci-for-ci-configuration">CI for CI configuration</h3>
+
+<p>Config-repo users are increasingly experimenting with templates and generating configuration rather than crafting each YAML, JSON file manually. Such approach is usually driven by DRY (don&rsquo;t repeat yourself), it can also decrease readability and maintainability of the configuration.</p>
+
+<p>If we think about configuration repository as a software project, then applying some best practices would mean that we test it, using the CI system, before the deployment. For a config repo project, the software lifecycle stages would translate to:</p>
+
+<ul>
+<li>test - validate the configuration with the preflight API</li>
+<li>deployment - push to source control configured as config repo</li>
+</ul>
+
+<p>If we are generating the configuration files, then that would be an additional, earliest stage.</p>
+
+<h4 id="example-setup">Example setup</h4>
+
+<p>In order for such setup to work, we would need additionally:</p>
+
+<ul>
+<li>a GoCD agent capable of rendering configuration templates, using a template engine of our choice.</li>
+<li>the GoCD agent being able to push to git repository</li>
+<li>the GoCD agent having sufficient secrets to access the GOCD API</li>
+<li>an additional pipeline responsible for delivery of valid configuration</li>
+</ul>
+
+<p>Here is an example workflow, with a generation stage, that could be implemented:</p>
+
+<ol>
+<li>Developer makes changes in the templates of configuration files.</li>
+<li>Developer pushes these changes to a <code>config</code> branch of the repository.</li>
+<li>GoCD picks up changes in <code>config</code> branch and starts a pipeline which runs 3 tasks:
+
+<ul>
+<li>generate - which executes the template engine to render the final configuration (e.g. JSON, YAML)</li>
+<li>validate - which runs the <code>gocd configrepo preflight</code> command</li>
+<li>commit and push - which would commit generated files, merge to <code>master</code> branch and push</li>
+</ul></li>
+</ol>
+
+<p>A jinja template file could look like this:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">format_version: <span style="color:#ff0;font-weight:bold">4</span>
+pipelines:
+  preflight-demo:
+    group: {{ group }}
+    label_template: <span style="color:#0ff;font-weight:bold">&#34;${git[:8]}&#34;</span>
+    materials:
+      git:
+        type: configrepo
+    stages:
+      - test:
+          jobs:
+            test:
+              tasks:
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - echo {{ greating }}</code></pre></div>
+<p>Then, in order to render this pipeline, we could use python and <a href="https://github.com/kblomqvist/yasha">yasha</a> package:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4">yasha --mode=pedantic --group=www --greating=hello -o pipeline.gocd.yaml pipeline.yaml.j2</pre></div>
+<p>A pipeline which generates and validates the configuration could look like this:</p>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">format_version: <span style="color:#ff0;font-weight:bold">4</span>
+pipelines:
+  preflight-demo.config:
+    group: www
+    label_template: <span style="color:#0ff;font-weight:bold">&#34;${git[:8]}&#34;</span>
+    materials:
+      git:
+        git: git@github.com:tomzo/gocd-preflight-demo.git
+        branch: config
+    environment_variables:
+      GOCDCLI_SERVER_URL: https://go.mydomain.com/go
+      GOCDCLI_AUTH_TYPE: token
+    secure_variables:
+      GOCDCLI_AUTH_TOKEN: AES:ZWI3YWJmNDZkZjcxMGZiZGU1YzJiNTMyODU3MDY5YTViMWNjZTRhYiAK
+    stages:
+      - validate:
+          jobs:
+            config:
+              tasks:
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - ./tasks generate
+                - exec:
+                    command: dojo
+                    arguments:
+                      - -c
+                      - Dojofile.val
+                      - <span style="color:#0ff;font-weight:bold">&#34;./tasks validate&#34;</span>
+                - exec:
+                    command: /bin/bash
+                    arguments:
+                      - -c
+                      - ./tasks publish</code></pre></div>
+<p>This example assumes you would be using the <a href="https://github.com/gocd-contrib/docker-gocd-cli-dojo">gocd-cli-dojo</a> image to execute the validation step.</p>
+
+<p>This is only a thought experiment. A draft is available in <code>recursive</code> branch of the <a href="https://github.com/tomzo/gocd-preflight-demo/tree/recursive">gocd-preflight-demo</a> repository.</p>
+
+<p>If you have any interest in setting up a full proof of concept, let me know in the comments.</p>
+
+<h4 id="other-pros-and-cons">Other pros and cons</h4>
+
+<p>Putting your configuration into a pipeline has a few <strong>benefits</strong>:</p>
+
+<ul>
+<li>The materials used for generating the configuration can be anything that GoCD supports, particularly other repositories or artifacts fetched from dependant pipelines. This means you can share templates in whatever process you like.</li>
+<li>Since the rendered configuration is eventually commited in the source control, this brings back the <strong>readable preview</strong> of what is the current state of GoCD configuration. After all, YAML is very easy to review. The repository with the generated content is the single source of truth.</li>
+<li>Chances of introducing a broken config to the server are very low, especially if the only channel will be through the automated commit.</li>
+</ul>
+
+<p><strong>Cons</strong>:</p>
+
+<ul>
+<li>Complexity builds on complexity. Excessive use of templates and dependencies might cause a maintainability crisis.</li>
+<li>Using the extra branch and having to wait for another pipeline to pass before config gets applied slows down the feedback.</li>
+</ul>
+
+<p>Choose your tools wisely.</p>
+
+<h1 id="summary">Summary</h1>
+
+<p>In this post we have seen how <code>gocd-cli</code> can be applied to validate configuration early.
+It is a big move forward towards improving <strong>feedback time</strong> on configuration errors. The addition of token-based authentication is also helpful in implementing secure validation routines.</p>
+
+<p>The <code>gocd-cli</code> is in early development stage, but sufficient to boost productivity already.</p>
+
+<p>In the near term it would be nice to add a few usability improvements:</p>
+
+<ul>
+<li>start releasing <code>gocd-cli</code> binaries</li>
+<li>shorten the <a href="https://github.com/gocd-contrib/gocd-cli/issues/40">long CLI commands</a></li>
+<li>make <a href="https://github.com/gocd-contrib/gocd-cli/issues/39">environment variables unix friendly</a> in the gocd-cli</li>
+<li>improve error messages in the <a href="https://github.com/tomzo/gocd-yaml-config-plugin/issues/113">yaml plugin by adding schema validation</a></li>
+</ul>
+
+      </div>
+
+      <footer>
+        
+
+
+        <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "ait-lab" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      </footer>
+    </article>
+
+    <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML-full">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$','$']],
+        displayMath: [['$$','$$']],
+        processEscapes: true,
+        processEnvironments: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        TeX: { extensions: ["AMSmath.js", "AMSsymbols.js"] }
+      }
+    });
+    MathJax.Hub.Queue(function() {
+      
+      
+      
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i = 0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  </section>
+
+      </div>
+
+      <footer class="footer">
+  <section class="container">
+    
+     © 2019
+    
+    
+  </section>
+</footer>
+
+    </main>
+
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-138356014-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+  </body>
+
+</html>
