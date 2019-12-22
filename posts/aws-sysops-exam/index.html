@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+    <meta name="description" content="KuduLab - personal blog and open source projects">
+    <meta name="keywords" content="blog,developer,continuous delivery,infrastructure,devops,IT,open source,gocd">
+
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Getting AWS SysOps Administrator certified"/>
+<meta name="twitter:description" content="My recommendations for learning AWS and passing the SysOps Admin exam"/>
+
+    <meta property="og:title" content="Getting AWS SysOps Administrator certified" />
+<meta property="og:description" content="My recommendations for learning AWS and passing the SysOps Admin exam" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kudulab.io/posts/aws-sysops-exam/" />
+<meta property="article:published_time" content="2019-10-06T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2019-10-06T00:00:00&#43;00:00"/>
+
+
+    
+      <base href="https://kudulab.io/posts/aws-sysops-exam/">
+    
+    <title>
+  Getting AWS SysOps Administrator certified · KuduLab
+</title>
+
+    
+      <link rel="canonical" href="https://kudulab.io/posts/aws-sysops-exam/">
+    
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" integrity="sha256-oSrCnRYXvHG31SBifqP2PM1uje7SJUyX0nTwO2RJV54=" crossorigin="anonymous" />
+
+    
+      
+      
+      <link rel="stylesheet" href="https://kudulab.io/css/coder.min.923b7a6f40696147de65ea4d2538660532f6c56de9cbbc51717213115bcaf18e.css" integrity="sha256-kjt6b0BpYUfeZepNJThmBTL2xW3py7xRcXITEVvK8Y4=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://kudulab.io/images/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://kudulab.io/images/favicon-16x16.png" sizes="16x16">
+
+    <meta name="generator" content="Hugo 0.55.1" />
+  </head>
+
+  <body class=" ">
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <img class="logo-img" src="https://kudulab.io/images/kudu-48x48.png" alt="Kudu Logo" />
+    <a class="navigation-title" href="https://kudulab.io/">
+      KuduLab
+    </a>
+    <input type="checkbox" id="menu-toggle" />
+    <label class="menu-button float-right" for="menu-toggle"><i class="fas fa-bars"></i></label>
+    <ul class="navigation-list">
+      
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://kudulab.io/">Home</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://kudulab.io/projects/">Projects</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://kudulab.io/contact/">About</a>
+          </li>
+        
+      
+      
+    </ul>
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">Getting AWS SysOps Administrator certified</h1>
+        </div>
+        <div class="post-meta">
+          <span class="posted-on">
+            <h4 class="post-author">by Tomasz Sętkowski</h4>
+          </span>
+          <div class="date">
+            <span class="posted-on">
+              <i class="fas fa-calendar"></i>
+              <time datetime='2019-10-06T00:00:00Z'>
+                October 6, 2019
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fas fa-clock"></i>
+              6 minutes read
+            </span>
+          </div>
+          
+          
+        </div>
+      </header>
+
+      <div>
+        
+
+<p>In July 2019, I&rsquo;ve passed the <a href="https://www.certmetrics.com/amazon/public/badge.aspx?i=3&amp;t=c&amp;d=2019-07-17&amp;ci=AWS00888387">AWS Certified SysOps Administrator - Associate</a>. I decided to share my experiences leading to it, because while there is a lot of resources for learning AWS, choosing the time-efficient ones requires some extra effort. While I am not an expert in AWS (with just one certificate), my learning path was quite smooth. I learned a lot in a short time, then passed the exam with a high score of <code>973/1000</code>, which is what many people could aim for. I will briefly explain my approach and resources I used so that you can also enjoy your path to AWS certificate.</p>
+
+<h3 id="sysops-as-the-first-exam">SysOps as the first exam</h3>
+
+<p>If you are new to the AWS certifications, often the first question is which exam should you take?
+All over the Internet you&rsquo;ll find people recommending going for the Architect Associate exam as your first one rather than SysOps Administrator because apparently Architect Associate is easier. I decided to go for the harder one to stand out. Given that I scored high, this is a confirmation that <strong>it is perfectly doable to pass SysOps as your first exam</strong>. The approach I took involved studying for Architect exam and getting high scores (~90%) on preparation exams, and only then moving further to SysOps materials.</p>
+
+<h2 id="study-roadmap">Study Roadmap</h2>
+
+<p>This is a detailed record of how much time I&rsquo;ve spent on learning AWS before attempting the exam:</p>
+
+<p>Assuming <strong>1 day = 8 hours</strong>.</p>
+
+<ol>
+<li><strong>3 days</strong> of learning basics and studying high-level overview of all AWS services. For me this implied transfer of knowledge from OpenStack to AWS. If you are totally new to the cloud, then it might take longer.</li>
+<li><strong>2 months</strong> of working with AWS. Personal projects, contributions to relevant open source. I didn&rsquo;t use any courses or tutorial at this stage. Just searched for needed services as I was building the infrastructure.</li>
+<li><strong>8 days</strong> of courses designed for AWS Architect Associate certificate.</li>
+<li><strong>3 days</strong> of practice exams and studying my answers (especially the wrong ones).</li>
+<li><strong>6 days</strong> of courses designed for SysOps exam.</li>
+<li><strong>5 days</strong> of practice exams for AWS SysOps Associate certificate.</li>
+</ol>
+
+<h2 id="resources">Resources</h2>
+
+<h3 id="practical-experience">Practical experience</h3>
+
+<p>Getting a grasp how to solve actual problems with AWS cloud is probably the best learning experience. I think that only by writing code and deploying actual projects you can gain <strong>and keep</strong> the relevant knowledge. For me, this meant migrating some services from OpenStack to AWS. So, I could immediately map concepts from one cloud to another. I am fortunate enough to have lots of projects and open source work to keep me busy.
+However, if you don&rsquo;t have your own projects, you can help someone else build their infrastructure or contribute in open source space.</p>
+
+<h3 id="courses">Courses</h3>
+
+<p>Here are the courses that I have completed and my impression of them:</p>
+
+<ol>
+<li><a href="https://acloud.guru/learn/aws-certification-preparation">A Cloud Guru - AWS Certification Preparation Guide</a>. Introduction to AWS certifications and some study tips. If you know absolutely nothing about AWS certifications then it&rsquo;s worth watching. If you don&rsquo;t have much time, I&rsquo;d consider skipping it.</li>
+<li><a href="https://acloud.guru/learn/aws-certified-solutions-architect-associate">A Cloud Guru - AWS Certified Solutions Architect Associate 2019</a>. I found it very useful, it touches a lot of subjects on the certificate. This is a great way to start you up on learning AWS in detail. <strong>BUT</strong> do no expect this to prepare you for the exam. There is way too little information in the course and you&rsquo;ll need to study more anyway.</li>
+<li><a href="https://acloud.guru/learn/aws-certified-sysops-administrator-associate-2019">A Cloud Guru - AWS Certified SysOps Administrator - Associate 2019</a>. The official description says that you should already know the content from the Solutions Architect course. It would have been great if this course actually added a layer on top of the previous one. Unfortunately, it repeats a lot of information and adds only a few new concepts. In conclusion, I would not recommend it, rather than this, jump straight to the next one -</li>
+<li><a href="https://www.udemy.com/course/ultimate-aws-certified-sysops-administrator-associate/?couponCode=JPTDSC10">Udemy, Stephane Maarek - Ultimate AWS Certified SysOps Administrator Associate 2019</a>. This is probably the best SysOps course out there. It does go in detail into topics which are covered on the exam. It does not waste your time by repeating basics from Solutions Architect materials.</li>
+</ol>
+
+<h3 id="practice-exams">Practice exams</h3>
+
+<p>Practice exams are not just about scoring yourself to see if you&rsquo;ll pass. A good set of tests will provide a long explanation to each question and links to documentation where you can read more about it.</p>
+
+<ol>
+<li><a href="https://acloud.guru/exam-simulator">A Cloud Guru exam simulator</a>. I had a mixed experience:
+
+<ul>
+<li><strong>Solutions Architect Associate</strong> exam questions are worth trying. Their difficulty is medium. I scored 70-80% on first attempts. So this did give me some feedback on areas to work on. I think its worth to attempt this a few times until you score 90%.</li>
+<li><strong>SysOps Administrator Associate</strong> exam questions are way too easy and the database is quite small. As a result, I scored over 90% on my first attempt. Moreover, the way that ACG simulator works often results in answering a question which you might have already seen in previous session. As a result, you spend time on answering easy questions which you have seen before. Not very effective and not much to learn there.</li>
+</ul></li>
+<li><a href="https://www.udemy.com/course/aws-certified-sysops-administrator-associate-practice-exams-soa-c01/">Udemy, Jon Bonso - AWS Certified SysOps Administrator Associate Practice Exams</a>. Because I felt under-prepared after ACG exams, I searched for other exam sources. Many people indicated that Jon Bonso&rsquo;s course is hard and has detailed explanations for each question. I can confirm that it is harder than the actual exam and you can learn a lot from the extra resources provided in each answer. There are 5 tests with unique questions. I have scored 69%, 78%, 87%, 92%, 76% few days before the actual exam where I scored 98%. If you agree with philosophy of over-preparing then definitely use this exam set.</li>
+</ol>
+
+<h3 id="notes">Notes</h3>
+
+<p>I&rsquo;ve produced many pages of markdown notes from all resources that I used. I definitely recommend to <strong>write down the critical things that you hear or read</strong> while learning. On the day of my exam, I had 2 hours in train and in waiting room before the exam. I read all I had written before. It was very useful and I keep coming back to these notes today.</p>
+
+<h2 id="final-words">Final words</h2>
+
+<p>I&rsquo;ve never been a fan of certifications. I prefer hands-on experience with real-world problems to solve, bugs to debug and infrastructure to be built. Why I bothered with getting the certificate? First, I was looking to shift my career, from OpenStack environment to AWS. Getting certified gets the hiring process a bit easier for both sides. Certificate is a clear indication that I actually know the cloud that I am supposed to operate on. Second, I found the knowledge that I gained to be extremely useful on practical part of job interviews. In the end, I am glad I went through the process. If you are thinking about working on AWS, then going through the path I described above is probably a good choice.</p>
+
+      </div>
+
+      <footer>
+        
+
+
+        <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "ait-lab" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      </footer>
+    </article>
+
+    <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML-full">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$','$']],
+        displayMath: [['$$','$$']],
+        processEscapes: true,
+        processEnvironments: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        TeX: { extensions: ["AMSmath.js", "AMSsymbols.js"] }
+      }
+    });
+    MathJax.Hub.Queue(function() {
+      
+      
+      
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i = 0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+  </script>
+  </section>
+
+      </div>
+
+      <footer class="footer">
+  <section class="container">
+    
+     © 2019
+    
+    
+  </section>
+</footer>
+
+    </main>
+
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-138356014-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+  </body>
+
+</html>
