@@ -6,10 +6,20 @@
     <description>Recent content in Posts on KuduLab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 06 Oct 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 26 Feb 2022 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://kudulab.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Colima, Dojo and the end of Docker Desktop</title>
+      <link>https://kudulab.io/posts/2022-dojo-colima/</link>
+      <pubDate>Sat, 26 Feb 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://kudulab.io/posts/2022-dojo-colima/</guid>
+      <description>We wrote this post because of the recent update to the Docker Desktop licensing. Dojo, a CLI tool that we wrote, uses Docker and Docker-Compose. As many organisations are moving away from Docker Desktop, we&amp;rsquo;d like to help you continue using Dojo while staying compliant with the licenses. The proposed solution focuses on Colima.
+Are licence updates applicable to you? First, if you use Docker on Linux, this situation does not concern you (see: source).</description>
+    </item>
     
     <item>
       <title>Getting AWS SysOps Administrator certified</title>
