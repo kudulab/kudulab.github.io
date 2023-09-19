@@ -6,10 +6,22 @@
     <description>Recent content on KuduLab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 26 Feb 2022 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 19 Sep 2023 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://kudulab.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Terraform license updated to Business Source License (BSL)</title>
+      <link>https://kudulab.io/posts/2023-1-terraform-license-change/</link>
+      <pubDate>Tue, 19 Sep 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://kudulab.io/posts/2023-1-terraform-license-change/</guid>
+      <description>You may have noticed the recent changes around Terraform licensing. This post explains the current situation and who is affected.
+The one-git-commit change It all started with this git commit on 11th August 2023.
+This commit changed the license of Terraform from MPL (Mozilla Public License) to BSL (Business Source License). What does it mean?
+The consequences There are many consequences of that license change. Some Terraform users will not be affected:</description>
+    </item>
     
     <item>
       <title>Colima, Dojo and the end of Docker Desktop</title>
@@ -18,7 +30,7 @@
       
       <guid>https://kudulab.io/posts/2022-dojo-colima/</guid>
       <description>We wrote this post because of the recent update to the Docker Desktop licensing. Dojo, a CLI tool that we wrote, uses Docker and Docker-Compose. As many organisations are moving away from Docker Desktop, we&amp;rsquo;d like to help you continue using Dojo while staying compliant with the licenses. The proposed solution focuses on Colima.
-Are licence updates applicable to you? First, if you use Docker on Linux, this situation does not concern you (see: source).</description>
+Are license updates applicable to you? First, if you use Docker on Linux, this situation does not concern you (see: source).</description>
     </item>
     
     <item>
