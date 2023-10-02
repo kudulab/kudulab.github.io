@@ -6,10 +6,21 @@
     <description>Recent content on KuduLab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 19 Sep 2023 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 02 Oct 2023 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://kudulab.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Terraform vs AWS CloudFormation vs AWS CDK</title>
+      <link>https://kudulab.io/posts/2023-2-terraform-vs-cdk-vs-cloudformation/</link>
+      <pubDate>Mon, 02 Oct 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://kudulab.io/posts/2023-2-terraform-vs-cdk-vs-cloudformation/</guid>
+      <description>As Wikipedia explains:
+ Infrastructure as code (IaC) is the process of managing and provisioning computer data centers through machine-readable definition files, rather than physical hardware configuration or interactive configuration tools.
+ IaC is one of the DevSecOps practices. With IaC you can manage your infrastructure (bare metal, virtual machines, containers, databases, networking services and other resources) in a similar way as you would manage the code of any other project (e.</description>
+    </item>
     
     <item>
       <title>Terraform license updated to Business Source License (BSL)</title>
